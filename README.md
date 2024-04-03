@@ -75,8 +75,7 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+This is a little project of mine, where i try to create something similar to an operating system. Note that i am still very new to the topic and don't noch much assembly so don't expect too much.
 
  <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
