@@ -1,39 +1,59 @@
 [org 0x7C00]
 
 jmp main
-; function that reads a key
+
+MAX_BUFFER_SIZE equ 80 ; Maximale Puffergröße für eine Zeile
+
+; Funktion zum Lesen eines Zeichens von der Tastatur
 readKey:
     mov ah, 0
     int 0x16
     ret
 
-; main part of the operating system
+; Hauptteil des Betriebssystems
 main:
     mov si, inputPrompt
     call printString
 
-; read and display input
+    mov di, buffer
+    mov cx, MAX_BUFFER_SIZE
+    call clearBuffer
+
 inputloop:
     call readKey
     mov ah, al
-    cmp ah, 13
+    cmp ah, 13 ; Wenn Enter gedrückt wurde
     je endInputLoop
-    mov [buffer], ah
-    mov si, buffer
+    cmp ah, 8 ; Wenn Backspace gedrückt wurde
+    je handleBackspace
+    mov [di], ah ; Zeichen in den Puffer schreiben
     call printChar
+    inc di
+    jmp inputloop
+
+handleBackspace:
+    cmp di, buffer ; Überprüfen, ob der Puffer leer ist
+    je inputloop ; Wenn ja, ignoriere den Backspace
+    dec di ; Cursor eine Position zurück
+    mov byte [di], ' ' ; Das gelöschte Zeichen durch ein Leerzeichen ersetzen
+    call printChar
+    dec di ; Cursor erneut eine Position zurück bewegen
     jmp inputloop
 
 endInputLoop:
-    jmp $
+    mov si, newLine
+    call printString
+    mov si, buffer
+    call printString
+    jmp main ; Zurück zum Anfang der Eingabeschleife
 
-
-; function that prints a character
+; Funktion zum Anzeigen eines Zeichens
 printChar:
     mov ah, 0x0E
     int 0x10
     ret
 
-; function that prints a string
+; Funktion zum Anzeigen eines Strings
 printString:
     lodsb
     cmp al, 0
@@ -45,14 +65,23 @@ printString:
 endPrintString:
     ret
 
-; prompt that tells the user to enter input
+; Funktion zum Löschen des Puffers
+clearBuffer:
+    mov al, ' ' ; Leerzeichen
+    rep stosb ; Fülle den Puffer mit Leerzeichen
+    ret
+
+; Prompt, das den Benutzer auffordert, eine Eingabe einzugeben
 inputPrompt:
     db "Enter a sentence: ", 0
 
+; Zeichenpuffer für die Benutzereingabe
 buffer:
-    db 0
+    times MAX_BUFFER_SIZE db 0
 
-
+; Neue Zeile
+newLine:
+    db 0x0D, 0x0A, 0 ; CR, LF, Nullterminator
 
 times 510-($-$$) db 0
 dw 0xAA55
